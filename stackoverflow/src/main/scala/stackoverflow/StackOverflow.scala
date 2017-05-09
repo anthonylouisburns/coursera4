@@ -177,6 +177,11 @@ class StackOverflow extends Serializable {
   }
 
 
+  def avgPoint(points:Iterable[(Int,Int)]):(Int,Int) = {
+    val sum:(Int,Int) = points.fold(0,0)((x,y)=>(x._1+y._1, x._2+y._2))
+    val len = points.size
+    (sum._1/len, sum._2/len)
+  }
   //
   //
   //  Kmeans method:
@@ -185,7 +190,11 @@ class StackOverflow extends Serializable {
 
   /** Main kmeans computation */
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
-    val newMeans = means.clone() // you need to compute newMeans
+    val newMeans:Array[(Int, Int)] = {
+      val closest:RDD[(Int,(Int,Int))] = vectors.map(p => (findClosest(p, means), p))
+      val closestGrouped:RDD[(Int,Iterable[(Int,Int)])] = closest.groupByKey()
+      closestGrouped.map(e=>avgPoint(e._2)).collect()
+    }
 
     // TODO: Fill in the newMeans array
     val distance = euclideanDistance(means, newMeans)
