@@ -24,7 +24,7 @@ object StackOverflow extends StackOverflow {
     val raw     = rawPostings(lines)
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored)
+    val vectors = vectorPostings(scored).cache()
 //    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
@@ -300,7 +300,13 @@ class StackOverflow extends Serializable {
       val langLabel: String   = langs(langLabelPair._1) // most common language in the cluster
       val clusterSize: Int    = vs.size
       val langPercent: Double = 100 * langLabelPair._2/clusterSize // percent of the questions in the most common language
-      val medianScore: Int    = sorted(clusterSize/2)
+      val medianScore: Int    = {
+        if(clusterSize % 2 == 0){
+          (sorted(clusterSize/2)+sorted((clusterSize/2)+1))/2
+        }else{
+          sorted((clusterSize/2)+1)
+        }
+      }
 
 
 
