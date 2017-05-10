@@ -129,7 +129,7 @@ class StackOverflow extends Serializable {
     scored.map(e=>{
       val index = firstLangInTag(e._1.tags, langs).map(_ * langSpread).getOrElse(langSpread * -1)
       (index, e._2)
-    })
+    }).cache()
   }
 
 
@@ -240,7 +240,6 @@ class StackOverflow extends Serializable {
 
   /** Return the euclidean distance between two points */
   def euclideanDistance(a1: Array[(Int, Int)], a2: Array[(Int, Int)]): Double = {
-    println(a1.length + " == " + a2.length)
     assert(a1.length == a2.length)
     var sum = 0d
     var idx = 0
@@ -298,21 +297,23 @@ class StackOverflow extends Serializable {
     val median = closestGrouped.mapValues { vs =>
 
 
-      val sorted:List[Int] = vs.map(x=>x._2).toList.sorted;
 
       val r:Iterable[Int] = vs.map(x=>x._1 / langSpread)
       val langCount:Map[Int, Long] = r.groupBy(x=>x).mapValues(_.size)
 
       val langLabelPair = langCount.toList.sortBy(x=>x._2).last
 
+      val sorted:List[Int] = vs.filter(x=>x._1/langSpread==langLabelPair._1).map(x=>x._2).toList.sorted;
+
       val langLabel: String   = langs(langLabelPair._1) // most common language in the cluster
       val clusterSize: Int    = vs.size
       val langPercent: Double = 100 * langLabelPair._2/clusterSize // percent of the questions in the most common language
       val medianScore: Int    = {
-        if(clusterSize % 2 == 0){
-          (sorted(clusterSize/2)+sorted((clusterSize/2)+1))/2
+        val s = sorted.size
+        if(s % 2 == 0){
+          (sorted((s/2)-1)+sorted((s/2)))/2
         }else{
-          sorted((clusterSize/2)+1)
+          sorted((s/2))
         }
       }
 

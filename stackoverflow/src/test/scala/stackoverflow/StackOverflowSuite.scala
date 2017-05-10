@@ -58,46 +58,68 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 //    println("scored " + numScored)
 //    assert(numScored === 2121822L)
 //  }
+//
+//  test("Idea for test: 𝚜𝚌𝚘𝚛𝚎𝚍 RDD should have 2121822 entries") {
+//    val lines1 = sc.textFile("/Users/aburns/src/anthony/coursera/scalaSpecialization/coursera4/stackoverflow/src/main/resources/stackoverflow/stackoverflow.csv").take(10000)
+//    val lines = sc.parallelize(lines1)
+//    println("lines " + lines.count())
+//    val postings = rawPostings(lines)
+//    println("raw " + postings.count())
+//
+//    val questions = postings.filter(p=> p.postingType==1)
+//    println("questions " + questions.count())
+//
+//    val answers = postings.filter(p=> p.postingType==2)
+//    println("answers " + answers.count())
+//    val qid_questions:RDD[(Int,Posting)] = questions.map(p=>(p.id, p))
+//    println("qid_questions " + qid_questions.count())
+//    val qid_answers:RDD[(Int,Posting)]  = answers.map(p=>(p.parentId.get, p))
+//    println("qid_answers " + qid_answers.count())
+//    val grouped = qid_questions.join(qid_answers).groupByKey()
+//    println("grouped " + grouped.count())
+//
+//  }
+//
+//  test("cluster size") {
+//    val lines1 = sc.textFile("/Users/aburns/src/anthony/coursera/scalaSpecialization/coursera4/stackoverflow/src/main/resources/stackoverflow/stackoverflow.csv").take(10000)
+//    val lines = sc.parallelize(lines1)
+//    println("lines " + lines.count())
+//    val postings = rawPostings(lines)
+//    println("raw " + postings.count())
+//
+//    val questions = postings.filter(p=> p.postingType==1)
+////    println("questions " + questions.filter(p=>p.).count())
+//
+//    val answers = postings.filter(p=> p.postingType==2)
+//    println("answers " + answers.count())
+//    val qid_questions:RDD[(Int,Posting)] = questions.map(p=>(p.id, p))
+//    println("qid_questions " + qid_questions.count())
+//    val qid_answers:RDD[(Int,Posting)]  = answers.map(p=>(p.parentId.get, p))
+//    println("qid_answers " + qid_answers.count())
+//    val grouped = qid_questions.join(qid_answers).groupByKey()
+//    println("grouped " + grouped.count())
+//
+//  }
 
-  test("Idea for test: 𝚜𝚌𝚘𝚛𝚎𝚍 RDD should have 2121822 entries") {
-    val lines1 = sc.textFile("/Users/aburns/src/anthony/coursera/scalaSpecialization/coursera4/stackoverflow/src/main/resources/stackoverflow/stackoverflow.csv").take(10000)
-    val lines = sc.parallelize(lines1)
-    println("lines " + lines.count())
-    val postings = rawPostings(lines)
-    println("raw " + postings.count())
-
-    val questions = postings.filter(p=> p.postingType==1)
-    println("questions " + questions.count())
-
-    val answers = postings.filter(p=> p.postingType==2)
-    println("answers " + answers.count())
-    val qid_questions:RDD[(Int,Posting)] = questions.map(p=>(p.id, p))
-    println("qid_questions " + qid_questions.count())
-    val qid_answers:RDD[(Int,Posting)]  = answers.map(p=>(p.parentId.get, p))
-    println("qid_answers " + qid_answers.count())
-    val grouped = qid_questions.join(qid_answers).groupByKey()
-    println("grouped " + grouped.count())
-
-  }
-
-  test("cluster size") {
-    val lines1 = sc.textFile("/Users/aburns/src/anthony/coursera/scalaSpecialization/coursera4/stackoverflow/src/main/resources/stackoverflow/stackoverflow.csv").take(10000)
-    val lines = sc.parallelize(lines1)
-    println("lines " + lines.count())
-    val postings = rawPostings(lines)
-    println("raw " + postings.count())
-
-    val questions = postings.filter(p=> p.postingType==1)
-//    println("questions " + questions.filter(p=>p.).count())
-
-    val answers = postings.filter(p=> p.postingType==2)
-    println("answers " + answers.count())
-    val qid_questions:RDD[(Int,Posting)] = questions.map(p=>(p.id, p))
-    println("qid_questions " + qid_questions.count())
-    val qid_answers:RDD[(Int,Posting)]  = answers.map(p=>(p.parentId.get, p))
-    println("qid_answers " + qid_answers.count())
-    val grouped = qid_questions.join(qid_answers).groupByKey()
-    println("grouped " + grouped.count())
-
+  test("clusterResults"){
+    val centers = Array((0,0), (100000, 0))
+    val rdd = StackOverflow.sc.parallelize(List(
+      (0, 1000),
+      (0, 23),
+      (0, 234),
+      (0, 0),
+      (0, 1),
+      (0, 1),
+      (50000, 2),
+      (50000, 10),
+      (100000, 2),
+      (100000, 5),
+      (100000, 10),
+      (200000, 100),
+      (100000, 2444),
+      (100000, 5444),
+      (100000, 10444),
+      (200000, 100444)  ))
+    testObject.printResults(testObject.clusterResults(centers, rdd))
   }
 }
