@@ -25,7 +25,6 @@ object StackOverflow extends StackOverflow {
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
     val vectors = vectorPostings(scored).cache()
-//    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
     val results = clusterResults(means, vectors)
@@ -177,24 +176,23 @@ class StackOverflow extends Serializable {
   }
 
 
-  def avgPoint(points:Iterable[(Int,Int)]):(Int,Int) = {
-    val sum:(Int,Int) = points.fold(0,0)((x,y)=>(x._1+y._1, x._2+y._2))
-    val len = points.size
-    (sum._1/len, sum._2/len)
-  }
   //
   //
   //  Kmeans method:
   //
   //
 
+  def calculateNewMeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)]):Array[(Int, Int)]={
+    val closest:RDD[(Int,(Int,Int))] = vectors.map(p => (findClosest(p, means), p))
+    val closestGrouped:RDD[(Int,Iterable[(Int,Int)])] = closest.groupByKey()
+    val newMeansMap:scala.collection.Map[Int,(Int,Int)] = closestGrouped.mapValues(e=>averageVectors(e)).collectAsMap()
+    val meansWithIndex:Array[(Int,(Int, Int))] = means.zipWithIndex.map(e=>(e._2->e._1))
+
+    meansWithIndex.map(e=>newMeansMap.get(e._1).getOrElse(e._2))
+  }
   /** Main kmeans computation */
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
-    val newMeans:Array[(Int, Int)] = {
-      val closest:RDD[(Int,(Int,Int))] = vectors.map(p => (findClosest(p, means), p))
-      val closestGrouped:RDD[(Int,Iterable[(Int,Int)])] = closest.groupByKey()
-      closestGrouped.map(e=>avgPoint(e._2)).collect()
-    }
+    val newMeans:Array[(Int, Int)] = calculateNewMeans(means, vectors)
 
     // TODO: Fill in the newMeans array
     val distance = euclideanDistance(means, newMeans)
@@ -242,6 +240,7 @@ class StackOverflow extends Serializable {
 
   /** Return the euclidean distance between two points */
   def euclideanDistance(a1: Array[(Int, Int)], a2: Array[(Int, Int)]): Double = {
+    println(a1.length + " == " + a2.length)
     assert(a1.length == a2.length)
     var sum = 0d
     var idx = 0
