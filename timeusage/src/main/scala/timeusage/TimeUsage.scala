@@ -62,15 +62,23 @@ object TimeUsage {
     *         have type Double. None of the fields are nullable.
     * @param columnNames Column names of the DataFrame
     */
-  def dfSchema(columnNames: List[String]): StructType =
-    ???
+  def dfSchema(columnNames: List[String]): StructType = {
+    StructType(
+      columnNames.zipWithIndex.map(f => f._2 match {
+        case 0 => StructField (f._1, StringType, true)
+        case _ => StructField (f._1, DoubleType, true)
+      }))
+  }
+
 
 
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
     * @param line Raw fields
     */
-  def row(line: List[String]): Row =
-    ???
+  def row(line: List[String]): Row ={
+    Row.fromSeq(
+      line)
+  }
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
@@ -88,7 +96,16 @@ object TimeUsage {
     *    “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-    ???
+    classifiedColumns(columnNames, (Nil,Nil,Nil))
+  }
+
+  def classifiedColumns(columnNames: List[String], result:(List[Column], List[Column], List[Column])): (List[Column], List[Column], List[Column]) = columnNames match {
+    case Nil => result
+    case h::t => h match {
+      case "t01" | "t03" | "t11" | "t1801" | "t1803" => classifiedColumns(t, (col(h)::result._1, result._2, result._3))
+      case "t05" | "t1805" => classifiedColumns(t, (result._1, col(h)::result._2, result._3))
+      case _ => classifiedColumns(t, (result._1, result._2, col(h)::result._3))
+    }
   }
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
