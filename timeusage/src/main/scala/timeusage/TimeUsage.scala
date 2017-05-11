@@ -145,9 +145,9 @@ object TimeUsage {
     otherColumns: List[Column],
     df: DataFrame
   ): DataFrame = {
-    val workingStatusProjection: Column = expr("case when 1 <= telfs < 3 then 'working' else 'not working' end").name("working")
+    val workingStatusProjection: Column = expr("case when telfs >= 1 AND telfs < 3 then 'working' else 'not working' end").name("working")
     val sexProjection: Column = expr("case tesex when 1 then 'male' else 'female' end").name("sex")
-    val ageProjection: Column = expr("case when 15 <= teage <= 22 then 'young' when 23 <= teage <= 55 then 'active' else 'elder' end").name("age")
+    val ageProjection: Column = expr("case when 15 <= teage AND teage <= 22 then 'young' when 23 <= teage AND teage <= 55 then 'active' else 'elder' end").name("age")
 
     val primaryNeedsProjection: Column = primaryNeedsColumns.fold(lit(0))(_+_).name("primaryNeeds")
     val workProjection: Column = workColumns.fold(lit(0))(_+_).name("work")
@@ -175,7 +175,7 @@ object TimeUsage {
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    ???
+    summed.groupBy(col("working").name("status"),col("sex"),col("age")).agg(avg("primaryNeeds").name("primaryNeeds"),avg("work").name("work"),avg("other").name("other"))
   }
 
   /**
