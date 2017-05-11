@@ -104,7 +104,7 @@ object TimeUsage {
     case h::t => h match {
       case "t01" | "t03" | "t11" | "t1801" | "t1803" => classifiedColumns(t, (col(h)::result._1, result._2, result._3))
       case "t05" | "t1805" => classifiedColumns(t, (result._1, col(h)::result._2, result._3))
-      case _ => classifiedColumns(t, (result._1, result._2, col(h)::result._3))
+      case "t02"|"t04"|"t06"|"t07"|"t08"|"t09"|"t10"|"t12"|"t13"|"t14"|"t15"|"t16"|"t18"  => classifiedColumns(t, (result._1, result._2, col(h)::result._3))
     }
   }
 
@@ -144,15 +144,15 @@ object TimeUsage {
     otherColumns: List[Column],
     df: DataFrame
   ): DataFrame = {
-    val workingStatusProjection: Column = ???
-    val sexProjection: Column = ???
-    val ageProjection: Column = ???
+    val workingStatusProjection: Column = expr("case when 1 <= telfs < 3 then 'working' else 'not working' end").name("working")
+    val sexProjection: Column = expr("case tesex when 1 then 'male' else 'female' end").name("sex")
+    val ageProjection: Column = expr("case when 15 <= teage <= 22 then 'young' when 23 <= teage <= 55 then 'active' else 'elder' end").name("age")
 
-    val primaryNeedsProjection: Column = ???
-    val workProjection: Column = ???
-    val otherProjection: Column = ???
+    val primaryNeedsProjection: Column = primaryNeedsColumns.reduce(_+_).name("primaryNeeds")
+    val workProjection: Column = workColumns.reduce(_+_).name("work")
+    val otherProjection: Column = otherColumns.reduce(_+_).name("other")
     df
-      .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
+      .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection.name("primaryNeeds"), workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
   }
 
